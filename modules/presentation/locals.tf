@@ -522,23 +522,24 @@ EOF
 
       <section>
         <h3>Environment Promotion</h3>
-        <pre><code class="language-bash">infrastructure/
-├── terragrunt.hcl          # root config
+        <pre><code class="language-bash">sre/
+├── terragrunt.hcl              # root config
 ├── dev/
-│   ├── vpc/
-│   │   └── terragrunt.hcl  # include root + env-specific vars
-│   └── ecs/
-│       └── terragrunt.hcl
-├── staging/
-│   ├── vpc/
-│   │   └── terragrunt.hcl
-│   └── ecs/
-│       └── terragrunt.hcl
+│   ├── account.terragrunt.hcl  # AWS account ID + profile
+│   └── us-east-1/
+│       ├── region.terragrunt.hcl
+│       └── dev/
+│           ├── environment.terragrunt.hcl
+│           ├── vpc/terragrunt.hcl
+│           ├── ecs/terragrunt.hcl
+│           └── rds-backend-cluster/terragrunt.hcl
 └── prod/
-    ├── vpc/
-    │   └── terragrunt.hcl
-    └── ecs/
-        └── terragrunt.hcl</code></pre>
+    ├── account.terragrunt.hcl  # different AWS account
+    └── us-east-1/
+        └── prod/
+            ├── vpc/terragrunt.hcl
+            ├── ecs/terragrunt.hcl
+            └── rds-backend-cluster/terragrunt.hcl</code></pre>
         <p>Each leaf <code>terragrunt.hcl</code> is minimal:</p>
         <pre><code class="language-hcl">include "root" {
   path = find_in_parent_folders()
@@ -552,7 +553,7 @@ inputs = {
   environment = "dev"
   cidr_block  = "10.0.0.0/16"
 }</code></pre>
-        <aside class="notes">The directory structure IS the environment model. dev/vpc and prod/vpc point to the same module source — only the inputs differ. Promoting from dev to staging means copying the terragrunt.hcl and changing a few input values. The root config handles everything else: backend, providers, common settings.</aside>
+        <aside class="notes">The directory structure IS the environment model. We use a hierarchy: account → region → environment → component. Dev and prod live in separate AWS accounts for isolation. Each layer has its own .hcl that sets context — account ID, region, environment name — and the leaf configs inherit all of it. Promoting to prod means the same module source with different inputs and a different AWS account.</aside>
       </section>
 
       <section>
@@ -609,71 +610,58 @@ inputs = {
       <section>
         <h3>The PR Workflow</h3>
         <ul>
-          <li><span class="green">On PR open / push</span> → <code>terraform plan</code> runs automatically</li>
-          <li>Plan output is <span class="amber">posted as a PR comment</span> — reviewers see exactly what will change</li>
-          <li>Branch protection requires plan to pass before merge</li>
-          <li><span class="green">On merge to main</span> → <code>terraform apply</code> runs automatically</li>
-          <li>Applies are <span class="amber">gated</span> — only main branch can apply changes</li>
+          <li><span class="green">On PR open / push</span> → <code>terragrunt plan</code> runs automatically</li>
+          <li>Plan output is visible in the <span class="amber">workflow run logs</span> — reviewers check the Actions tab</li>
+          <li>Branch protection requires the plan workflow to pass before merge</li>
+          <li><span class="green">On merge to main</span> → <code>terragrunt apply-all</code> runs automatically</li>
+          <li>Applies are <span class="amber">gated</span> — only the main branch can trigger applies</li>
+          <li>Dev can also be force-deployed on PR with a <code>deploy-dev</code> label</li>
         </ul>
         <br>
         <p style="color: var(--green); font-size: 0.6em; text-align: center;">PR → Plan → Review → Merge → Apply</p>
-        <aside class="notes">The key principle: no one runs terraform apply from their laptop. All changes go through code review with the plan visible. This catches mistakes before they hit production. The plan-as-PR-comment pattern is standard now — it gives reviewers the same information they'd get from running plan locally.</aside>
+        <aside class="notes">The key principle: no one runs terragrunt apply from their laptop. All changes go through code review with the plan visible in the Actions workflow logs. This catches mistakes before they hit production. For dev, there's an escape hatch — the deploy-dev label lets you apply from a PR branch without merging.</aside>
       </section>
 
       <section>
-        <h3>GitHub Actions Workflow</h3>
-        <pre><code class="language-yaml">name: Terraform
+        <h3>GitHub Actions: Matrix-Driven Deploys</h3>
+        <p>Workflows detect which services changed and deploy only those:</p>
+        <pre><code class="language-yaml">name: Dev Deploy
 on:
   pull_request:
     branches: [main]
+    paths: ['apps/**']
   push:
     branches: [main]
+    paths: ['apps/**']
 
 jobs:
-  terraform:
+  detect-changes:
+    # Matrix generation — only deploy services that changed
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write    # OIDC auth to AWS
-      contents: read
-      pull-requests: write  # post plan comments
-
+    outputs:
+      matrix: $${{ steps.changes.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
+      - id: changes
+        uses: matrix-by-diff  # detects changed services
 
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_wrapper: false
-
+  deploy:
+    needs: detect-changes
+    strategy:
+      matrix: $${{ fromJson(needs.detect-changes.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
       - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::123456789:role/terraform-ci
-          aws-region: us-east-1
 
-      - name: Terraform Init
-        run: terraform init
-
-      - name: Terraform Plan
-        if: github.event_name == 'pull_request'
-        run: terraform plan -no-color -out=plan.tfplan
-
-      - name: Post Plan to PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const output = require('fs')
-              .readFileSync('plan.tfplan.txt', 'utf8');
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '```\n' + output + '\n```'
-            });
-
-      - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve</code></pre>
-        <aside class="notes">A few things to note: we use OIDC for AWS auth — no static credentials stored in GitHub. The terraform_wrapper is disabled so we get clean output. The plan step saves a plan file. In reality our setup is more complex with Terragrunt and matrix strategies for multiple stacks, but this captures the core pattern. Branch protection ensures the apply step only runs after PR approval and merge.</aside>
+      - name: Terragrunt Plan or Apply
+        env:
+          TG_ACTION: $${{ github.ref == 'refs/heads/main'
+            &amp;&amp; 'apply' || 'plan' }}
+        run: |
+          cd apps/$${{ matrix.service }}/terragrunt/dev
+          terragrunt run-all $$TG_ACTION
+            --terragrunt-non-interactive</code></pre>
+        <aside class="notes">This is closer to what our actual setup looks like. The key pattern: a matrix-by-diff step figures out which services had file changes, then we only plan/apply those. Each service has its own terragrunt directory with ALB, WAF, API, DNS components — terragrunt run-all handles the dependency ordering. Separate workflows handle dev vs prod vs artifact (ECR repos). We also pull from a shared cicd-templates repo for reusable workflow steps.</aside>
       </section>
     </section>
 
