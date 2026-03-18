@@ -132,8 +132,8 @@ locals {
       <h1>${var.talk_title}</h1>
       <p style="color: var(--green); font-size: 0.8em; text-align: center;">${var.presenter_name}</p>
       <aside class="notes">
-        Welcome, everyone. Quick meta-note: this presentation was literally provisioned with terraform apply —
-        every slide you see is a resource attribute in a .tf file. So if there's a typo, blame the state file.
+        Welcome, everyone. Quick meta-note: this presentation was literally provisioned with terragrunt apply —
+        every slide you see is a resource attribute in a .tf file, wrapped by Terragrunt. So if there's a typo, blame the state file.
         Let's get started.
       </aside>
     </section>
@@ -474,7 +474,7 @@ output "private_ip" {
       <section>
         <h2 class="section-header">🏗️ Terragrunt</h2>
         <p style="color: var(--green); font-size: 0.6em;">slide.terragrunt: Creating...</p>
-        <aside class="notes">Terragrunt is a thin wrapper around Terraform by Gruntwork. If you haven't used it, that's fine — this section covers why it exists and what it does for us.</aside>
+        <aside class="notes">Terragrunt is a thin wrapper around Terraform by Gruntwork. If you haven't used it, that's fine — this section covers why it exists and what it does for us. Fun fact: this very presentation is managed by Terragrunt — the module lives in modules/presentation/ and the live config passes inputs like presenter name via a terragrunt.hcl wrapper.</aside>
       </section>
 
       <section>
@@ -681,18 +681,18 @@ jobs:
     <!-- SLIDE 9: terraform destroy — Closing         -->
     <!-- ============================================ -->
     <section>
-      <h2 class="prompt">terraform destroy</h2>
+      <h2 class="prompt">terragrunt destroy</h2>
       <br>
       <p style="text-align: center;">All resources (slides) will be destroyed.</p>
       <br>
       <p style="text-align: center; color: var(--amber); font-size: 1em;">Questions?</p>
       <br>
       <p style="text-align: center; color: #666; font-size: 0.6em;">
-        This presentation will self-destruct on <code>terraform destroy</code>
+        This presentation will self-destruct on <code>terragrunt destroy</code>
       </p>
       <aside class="notes">
-        That's it! Reminder: the source code for this presentation is literally Terraform.
-        You can clone the repo and run terraform apply to get your own copy.
+        That's it! Reminder: the source code for this presentation is literally Terraform, wrapped by Terragrunt.
+        You can clone the repo and run terragrunt apply to get your own copy.
         Thanks, everyone.
       </aside>
     </section>
