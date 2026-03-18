@@ -128,7 +128,7 @@ locals {
     <!-- SLIDE 1: terraform init — Title              -->
     <!-- ============================================ -->
     <section>
-      <p style="color: var(--amber); font-size: 0.7em; margin-bottom: 0;">$ terraform init</p>
+      <p style="color: var(--amber); font-size: 0.7em; margin-bottom: 0;">$ terragrunt init</p>
       <p style="color: #666; font-size: 0.55em;">Initializing provider plugins...</p>
       <p style="color: var(--green); font-size: 0.55em;">Terraform has been successfully initialized!</p>
       <br>
@@ -143,7 +143,7 @@ locals {
     <!-- SLIDE 2: terraform plan — Table of Contents  -->
     <!-- ============================================ -->
     <section>
-      <h2 class="prompt">terraform plan</h2>
+      <h2 class="prompt">terragrunt plan</h2>
       <div class="tf-plan">
         <p class="comment"># Terraform will perform the following actions:</p>
         <br>
@@ -154,10 +154,10 @@ locals {
         <p class="resource">+ slide.terragrunt</p>
         <p class="resource">+ slide.cicd_at_tabs</p>
         <br>
-        <p>Plan: <span class="amber">8 slides</span> to add, <span class="amber">0</span> to change, <span class="amber">0</span> to destroy.</p>
+        <p>Plan: <span class="amber">6 slides</span> to add, <span class="amber">0</span> to change, <span class="amber">0</span> to destroy.</p>
       </div>
       <aside class="notes">
-        walk through the agenda briefly. the framing device is the terraform lifecycle — init, plan, apply, destroy — with the main content in the "apply" phase. six content sections total: history for context, why terraform over alternatives, core concepts as a shared vocabulary refresher, a practical writing example, terragrunt (which is the most important section for our team), and finally how it all wires into our ci/cd at tabs. mention that questions are welcome throughout, not just at the end.
+        walk through the agenda briefly. the framing device is the terragrunt lifecycle — init, plan, apply, destroy — with the main content in the "apply" phase. six content sections: history for context, what terraform does, core concepts as a shared vocabulary refresher, a practical hcl example, terragrunt (the most important section for our team), and finally how it all wires into our ci/cd at tabs. mention that questions are welcome throughout, not just at the end.
       </aside>
     </section>
 
