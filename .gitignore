@@ -3,3 +3,7 @@
 *.tfstate.backup
 .terraform.lock.hcl
 index.html
+
+# Terragrunt
+.terragrunt-cache/
+terragrunt-debug.tfvars.json

@@ -9,3 +9,9 @@ variable "talk_title" {
   type        = string
   default     = "Terraform: Infrastructure as Code, Slides as Code"
 }
+
+variable "output_dir" {
+  description = "Directory where the presentation HTML file will be written"
+  type        = string
+  default     = ""
+}
