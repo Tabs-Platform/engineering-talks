@@ -148,7 +148,7 @@ locals {
         <p class="comment"># Terraform will perform the following actions:</p>
         <br>
         <p class="resource">+ slide.history_of_terraform</p>
-        <p class="resource">+ slide.why_terraform</p>
+        <p class="resource">+ slide.what_terraform_does</p>
         <p class="resource">+ slide.core_concepts</p>
         <p class="resource">+ slide.writing_terraform</p>
         <p class="resource">+ slide.terragrunt</p>
@@ -206,87 +206,35 @@ locals {
       </section>
     </section>
 
-    <!-- SLIDE 4: Why Terraform -->
+    <!-- SLIDE 4: What Terraform Is -->
     <section>
       <section>
-        <h2 class="section-header">why terraform over the alternatives</h2>
-        <p style="color: var(--green); font-size: 0.6em;">slide.why_terraform: Creating...</p>
-        <aside class="notes">this section covers why terraform won out over other infrastructure-as-code tools. the goal is to give the audience a clear mental model of the tradeoffs, not to say terraform is universally the best — but to explain why it was the right choice for us and for most teams in the industry. three sub-slides: iac principles, a comparison table, and the specific factors that sold us.</aside>
+        <h2 class="section-header">what terraform does</h2>
+        <p style="color: var(--green); font-size: 0.6em;">slide.what_terraform_does: Creating...</p>
+        <aside class="notes">this section explains what terraform actually is and how it works at a high level. the audience has some exposure, so this is about establishing shared understanding — not convincing anyone to use it. we already use it. two sub-slides: the iac model, then the workflow.</aside>
       </section>
 
       <section>
-        <h3>iac in 30 seconds</h3>
+        <h3>infrastructure as code</h3>
         <ul>
           <li><span class="amber">Declarative</span> — you describe what you want, not how to get there</li>
           <li><span class="amber">Idempotent</span> — run it twice, same result</li>
           <li><span class="amber">Version-controlled</span> — infra changes go through PRs like any other code</li>
           <li>Your .tf files <em>are</em> the docs for what's deployed</li>
         </ul>
-        <aside class="notes">these four principles apply to all infrastructure-as-code tools, not just terraform. declarative means you specify the desired end state and the tool figures out how to get there — contrast this with imperative scripting where you write step-by-step instructions. idempotency means running the same config twice produces the same result, which is critical for reliability. version control means infrastructure changes go through the same pull request and review process as application code. and self-documentation means the .tf files in your repo are always an accurate description of what's actually deployed — no more wikis that drift out of date. terraform's plan/apply workflow makes these principles especially tangible because you always get a preview of what will change before anything executes.</aside>
+        <aside class="notes">terraform is an infrastructure-as-code tool. you write configuration files that describe the infrastructure you want, and terraform figures out how to create, update, or delete resources to match. declarative means you specify the end state, not the steps — terraform handles the ordering and api calls. idempotency means running the same config twice produces the same result, which makes it safe to re-run. because everything is in .tf files checked into git, infrastructure changes go through the same pull request and review process as application code. the config files themselves serve as living documentation of what's actually deployed.</aside>
       </section>
 
       <section>
-        <h3>terraform vs. cloudformation vs. pulumi vs. cdk</h3>
-        <table>
-          <thead>
-            <tr>
-              <th></th>
-              <th>Terraform</th>
-              <th>CloudFormation</th>
-              <th>Pulumi</th>
-              <th>CDK</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="amber">Language</td>
-              <td>HCL</td>
-              <td>JSON / YAML</td>
-              <td>Python, TS, Go…</td>
-              <td>Python, TS, Go…</td>
-            </tr>
-            <tr>
-              <td class="amber">Multi-cloud</td>
-              <td class="green">Yes (native)</td>
-              <td>AWS only</td>
-              <td class="green">Yes</td>
-              <td>AWS only</td>
-            </tr>
-            <tr>
-              <td class="amber">Model</td>
-              <td>Declarative</td>
-              <td>Declarative</td>
-              <td>Imperative</td>
-              <td>Imperative → CFN</td>
-            </tr>
-            <tr>
-              <td class="amber">Providers</td>
-              <td class="green">3,000+</td>
-              <td>~200 AWS types</td>
-              <td>~150</td>
-              <td>AWS constructs</td>
-            </tr>
-            <tr>
-              <td class="amber">State</td>
-              <td>Explicit (S3, etc.)</td>
-              <td>Managed by AWS</td>
-              <td>Explicit / managed</td>
-              <td>CloudFormation</td>
-            </tr>
-          </tbody>
-        </table>
-        <aside class="notes">walk through the table column by column. cloudformation is a solid tool if you're fully committed to aws, but it locks you into the aws ecosystem and uses json or yaml, which are verbose for infrastructure definitions. pulumi's pitch is that you can use general-purpose programming languages like python or typescript instead of a dsl — that's genuinely appealing for some teams, but the declarative model is a feature, not a limitation. with imperative code you can write conditional logic and loops that create hard-to-predict infrastructure — terraform's constraints prevent that class of bugs. cdk is interesting but it compiles down to cloudformation templates, so you inherit all of cloudformation's limitations and debugging becomes harder because you're debugging generated code. terraform's provider ecosystem (over 3,000 providers) is the real competitive moat — nearly any service with an api has a terraform provider, and that number keeps growing.</aside>
-      </section>
-
-      <section>
-        <h3>what made the decision for us</h3>
+        <h3>the workflow: init, plan, apply</h3>
         <ul>
-          <li><span class="green">3,000+ providers</span> — if it has an API, there's probably a Terraform provider</li>
-          <li><span class="green">Plan/apply</span> — you always see what's going to change before it happens</li>
-          <li><span class="green">State</span> — Terraform tracks the mapping between your config and real resources</li>
-          <li><span class="green">Hiring</span> — HCL is the lingua franca of infra. Try hiring for Pulumi expertise.</li>
+          <li><code>terraform init</code> — downloads providers and sets up the backend</li>
+          <li><code>terraform plan</code> — compares your config to current state, shows what would change</li>
+          <li><code>terraform apply</code> — executes the changes</li>
+          <li>3,000+ providers — AWS, GCP, Datadog, GitHub, anything with an API</li>
+          <li>HCL — a configuration language designed for infrastructure</li>
         </ul>
-        <aside class="notes">these are the factors that specifically mattered for us at tabs. the provider ecosystem means we can manage aws infrastructure, datadog monitors, github repositories, and more from a single tool and workflow. the plan/apply cycle gives us confidence that changes will do what we expect — no more "let me just run this script and hope." state management, while operationally complex, means terraform has a reliable mapping between your configuration and the real world. the hiring point is worth emphasizing: hcl is the industry standard for infrastructure. if you post a job requiring terraform experience, most infrastructure engineers will qualify. try posting one requiring pulumi — the candidate pool shrinks dramatically. community matters too: the terraform module registry, stack overflow answers, and third-party tooling are all far more mature than any alternative.</aside>
+        <aside class="notes">the core workflow is three commands. init downloads the provider plugins and configures the backend (where state is stored). plan reads your config, compares it to the current state, and produces a diff showing exactly what will be created, modified, or destroyed — nothing happens yet. apply executes the plan. this preview-before-execute model is one of terraform's most important properties: you always know what's going to happen before it happens. terraform talks to external services through providers — there are over 3,000 of them covering cloud providers, saas tools, dns services, monitoring platforms, and more. the configuration language is hcl (hashicorp configuration language), which was purpose-built for infrastructure definitions — more readable than json, less ambiguous than yaml.</aside>
       </section>
     </section>
 
