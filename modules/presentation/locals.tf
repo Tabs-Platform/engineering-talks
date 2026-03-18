@@ -664,12 +664,10 @@ jobs:
     <section>
       <h2 class="prompt">terragrunt destroy</h2>
       <br>
-      <p style="text-align: center;">All resources (slides) will be destroyed.</p>
-      <br>
-      <p style="text-align: center; color: var(--amber); font-size: 1em;">Questions?</p>
+      <p style="text-align: center;">all resources (slides) will be destroyed.</p>
       <br>
       <p style="text-align: center; color: #666; font-size: 0.6em;">
-        This presentation will self-destruct on <code>terragrunt destroy</code>
+        this presentation will self-destruct on <code>terragrunt destroy</code>
       </p>
       <aside class="notes">
         wrap up. thank the audience for their time. remind them that the source code for this presentation is a public github repository — they can clone it and run terragrunt apply to generate their own copy. open the floor for questions. if there are no questions, end with a reminder that the slides will be available and that you're happy to chat about any of the topics covered in more detail afterwards.
