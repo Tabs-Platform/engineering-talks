@@ -1,5 +1,5 @@
-# andrew-talks
+# engineering-talks
 
-talks that andrew gives at tabs.
+engineering talks at tabs.
 
 - [terra-talk](./terra-talk/) — terraform and terragrunt
